@@ -1,0 +1,15 @@
+{
+  "name": "denx-b/bitrix-vue-component",
+  "type": "library",
+  "description": "Connecting vue components in the bitrix",
+  "license": "MIT",
+  "require": {
+    "php": "^7.0||^8.0",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Dbogdanoff\\": "src/"
+    }
+  }
+}

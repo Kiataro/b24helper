@@ -1,0 +1,28 @@
+{
+  "require": {
+    "wikimedia/composer-merge-plugin": "dev-master",
+    "kint-php/kint": "^4.0",
+    "denx-b/bitrix-vue-component": "^1.1"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest"
+  },
+  "config": {
+    "vendor-dir": "vendor",
+    "allow-plugins": {
+      "wikimedia/composer-merge-plugin": true
+    }
+  },
+  "extra": {
+    "merge-plugin": {
+      "require": [
+        "../bitrix/composer-bx.json"
+      ]
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "php_interface/lib/"
+    }
+  }
+}
