@@ -9,6 +9,7 @@ window.onload = function() {
         el: '#app',
         data: function() {
             return {
+                isAdmin: true,
                 searchQuery: '',
                 selectedCategory: '',
                 articles: [
@@ -98,10 +99,30 @@ window.onload = function() {
                     },
                     // Добавьте больше статей по необходимости
                 ],
-                isModalVisible: false,
+                isArticleVisible: false,
+                isAddVisible: false,
                 selectedArticle: null,
                 telegramLink: 'https://t.me/Zammensiny',
-                username: '@Zammensiny'
+                username: '@Zammensiny',
+                articleForm: {
+                    elements: [],
+                    title: '',
+                    subtitle: '',
+                },
+                inputValue: '', // Значение инпута
+                selectedText: 'Выберите или введите значение', // Изначальный текст кнопки
+                popoverVisible: false, // Состояние видимости поповера
+                selectedIcon: 'fa-solid fa-code',
+                selectedColor: '',
+                rules: {
+                    title: [
+                        { required: true, message: 'Заголовок не может быть пустым', trigger: 'blur' },
+                    ],
+                    subtitle: [
+                        { required: true, message: 'Подзаголовок не может быть пустым', trigger: 'blur' },
+                    ],
+                }
+
             };
         },
         computed: {
@@ -123,11 +144,66 @@ window.onload = function() {
             },
             openArticleModal(article) {
                 this.selectedArticle = article;
-                this.isModalVisible = true;
+                this.isArticleVisible = true;
+            },
+            openAddModal() {
+                this.isAddVisible = true;
             },
             closeModal() {
-                this.isModalVisible = false;
+                this.isArticleVisible = false;
                 this.selectedArticle = null;
+            },
+            submitForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        alert('submit!');
+
+                        console.log(this.articleForm)
+
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            removeParagraph(item) {
+                var index = this.articleForm.paragraphs.indexOf(item);
+                if (index !== -1) {
+                    this.articleForm.paragraphs.splice(index, 1);
+                }
+            },
+            removeCode(item) {
+                var index = this.articleForm.codes.indexOf(item);
+                if (index !== -1) {
+                    this.articleForm.codes.splice(index, 1);
+                }
+            },
+            removeElement(index) {
+                this.articleForm.elements.splice(index, 1);
+            },
+            addParagraph() {
+                this.articleForm.elements.push({
+                    type: 'paragraph',
+                    key: Date.now(),
+                    value: ''
+                });
+            },
+            addCode() {
+                this.articleForm.elements.push({
+                    type: 'code',
+                    key: Date.now(),
+                    value: '',
+                    select: '',
+                });
+            },
+            handleLanguage(command, index) {
+
+                this.articleForm.elements[index].select = command;
+            },
+            handleInput(value) {
+                // Ваш метод для обработки ввода
+                console.log(`Введено значение: ${value}`);
+                this.selectedText = value || 'Выберите или введите значение';
             },
             getCategoryClass(category) {
                 switch (category) {

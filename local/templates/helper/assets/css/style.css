@@ -104,3 +104,24 @@ html {
 .category-green {
     border-left: 3px solid #708c3c;
 }
+
+.el-form-item__content {
+    display: flex;
+    align-items: center;
+}
+
+.delete-button {
+    height: auto;
+    align-self: stretch;
+    margin-left: 10px;
+}
+
+.code-dropdown {
+    display: flex;
+    height: auto;
+    align-self: stretch;
+    margin-left: 10px;
+}
+.utility {
+    padding: 0 5px;
+}
