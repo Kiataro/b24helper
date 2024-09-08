@@ -76,7 +76,7 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
 
                     <el-dialog
                             title="Добавить заметку"
-                            width="33%"
+                            width="35%"
                             :visible.sync="isAddVisible">
 
                         <el-form
@@ -104,68 +104,120 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                                 <el-input v-model="articleForm.subtitle" clearable></el-input>
                             </el-form-item>
 
+                            <!-- Категория -->
+
+                            <el-form-item
+                                    prop="category"
+                                    label="Категория"
+                            >
+
+                                <el-select v-model="articleForm.category" clearable placeholder="" class="add-filter">
+                                    <el-option
+                                            v-for="category in uniqueCategories"
+                                            :key="category"
+                                            :label="category"
+                                            :value="category"
+                                    ></el-option>
+                                </el-select>
+
+                            </el-form-item>
+
                             <!-- Динамические элементы -->
 
                             <el-form-item
                                     v-for="(element, index) in articleForm.elements"
-                                    :label="element.type === 'paragraph' ? 'Параграф ' + (index + 1) : 'Код ' + (index + 1) + ' ' + element.select"
                                     :key="element.key"
                                     :prop="'elements.' + index + '.value'"
-                                    :rules="{
-        required: true,
-        message: element.type === 'paragraph' ? 'Параграф не может быть пустым' : 'Код не может быть пустым',
-        trigger: 'blur'
-    }"
+                                    :rules="getRules(element.type)"
                             >
-                                <el-input v-model="element.value" type="textarea"></el-input>
 
-                                <el-dropdown @command="handleLanguage($event, index)" trigger="click" class="code-dropdown" v-if="element.type === 'code'">
+                                <!-- Кастом лабель -->
 
-                                    <el-button class="utility">
-                                        <i class="fa-solid fa-code"></i>
-                                    </el-button>
+                                <template #label>
+                                    <div class="custom_label">
+                                        <div>
+                                            <span>{{ element.label }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="bold" v-if="element.fileName">{{ element.fileName }}</span>
+                                        </div>
+                                    </div>
 
-                                    <el-dropdown-menu slot="dropdown">
-                                        <el-dropdown-item command="php">PHP</el-dropdown-item>
-                                        <el-dropdown-item command="js">JavaScript</el-dropdown-item>
-                                        <el-dropdown-item command="html">HTML</el-dropdown-item>
-                                        <el-dropdown-item command="css">CSS</el-dropdown-item>
-                                    </el-dropdown-menu>
-                                </el-dropdown>
+                                </template>
 
-                                <el-popover
-                                        v-if="element.type === 'code'"
-                                        placement="bottom"
-                                        width="200"
-                                        trigger="click"
+                                <template v-if="element.type === 'paragraph'">
 
-                                >
-                                    <el-input
-                                            v-model="inputValue"
-                                            @input="handleInput"
-                                            placeholder="Введите текст"
-                                    ></el-input>
-                                    <el-button slot="reference">
-                                        <i class="el-icon-search"></i> <!-- Иконка для кнопки -->
-                                        {{ selectedText }}
-                                        <i class="el-icon-arrow-down"></i> <!-- Стрелка вниз -->
-                                    </el-button>
-                                </el-popover>
+                                    <el-input v-model="element.value" type="textarea"></el-input>
+
+                                </template>
+
+                                <template v-else-if="element.type === 'code'">
+
+                                    <el-input v-model="element.value" type="textarea"></el-input>
+
+                                    <el-popover
+                                            placement="bottom"
+                                            width="200"
+                                            trigger="click"
+                                            class="delete-button "
+
+                                    >
+                                        <el-input
+                                                v-model="element.fileName"
+                                                placeholder="Имя файла"
+                                        ></el-input>
+                                        <el-button slot="reference" class="utility">
+                                            <i class="el-icon-document"></i>
+                                        </el-button>
+                                    </el-popover>
+                                </template>
+
+                                <template v-else-if="element.type === 'image'">
+
+                                    <el-upload
+                                            class="avatar-uploader"
+                                            action="/"
+                                            :show-file-list="false"
+                                            :on-success="(res, file) => handleAvatarSuccess(res, file, index)"
+                                            :before-upload="beforeAvatarUpload">
+                                        <img v-if="element.fileSrc" :src="element.fileSrc" class="avatar">
+                                        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                                    </el-upload>
+
+                                </template>
+
+                                <!-- Кнопка удаления -->
 
                                 <el-button
                                         icon="el-icon-delete"
                                         @click.prevent="removeElement(index)"
                                         class="delete-button utility"
                                 ></el-button>
+
                             </el-form-item>
 
                             <!-- Навигация -->
 
-                            <el-form-item>
+                            <div class="nav">
+
                                 <el-button icon="el-icon-plus" @click="addParagraph">Параграф</el-button>
                                 <el-button icon="el-icon-plus" @click="addCode">Код</el-button>
+                                <el-button icon="el-icon-plus" @click="addImage">Изображение</el-button>
+
+                                <el-button icon="el-icon-folder-add" @click="triggerFileInput"></el-button>
+                                <el-button v-if="articleForm.fileSrc" icon="el-icon-folder-remove" @click="removeFileInput"></el-button>
+
                                 <el-button type="success" @click="submitForm('articleForm')">Сохранить</el-button>
-                            </el-form-item>
+
+                                <input
+                                        type="file"
+                                        ref="fileInput"
+                                        style="display: none"
+                                        @change="handleFileChange"
+                                />
+
+                            </div>
+
                         </el-form>
 
                     </el-dialog>

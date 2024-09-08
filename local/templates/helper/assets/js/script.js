@@ -97,7 +97,6 @@ window.onload = function() {
                         category: 'Разработка',
                         date: '2024-06-25'
                     },
-                    // Добавьте больше статей по необходимости
                 ],
                 isArticleVisible: false,
                 isAddVisible: false,
@@ -108,18 +107,19 @@ window.onload = function() {
                     elements: [],
                     title: '',
                     subtitle: '',
+                    category: '',
+                    fileSrc: '',
                 },
-                inputValue: '', // Значение инпута
-                selectedText: 'Выберите или введите значение', // Изначальный текст кнопки
-                popoverVisible: false, // Состояние видимости поповера
-                selectedIcon: 'fa-solid fa-code',
-                selectedColor: '',
+                imageUrl: '',
                 rules: {
                     title: [
                         { required: true, message: 'Заголовок не может быть пустым', trigger: 'blur' },
                     ],
                     subtitle: [
                         { required: true, message: 'Подзаголовок не может быть пустым', trigger: 'blur' },
+                    ],
+                    category: [
+                        { required: true, message: 'Категория не может быть пустой', trigger: 'blur' },
                     ],
                 }
 
@@ -153,6 +153,26 @@ window.onload = function() {
                 this.isArticleVisible = false;
                 this.selectedArticle = null;
             },
+            getRules(type) {
+                switch (type) {
+                    case 'paragraph':
+                        return [
+                            { required: true, message: 'Параграф не может быть пустым', trigger: 'blur' }
+                        ];
+                    case 'code':
+                        return [
+                            { required: true, message: 'Код не может быть пустым', trigger: 'blur' }
+                        ];
+                    case 'image':
+                        return [
+                            { required: false }
+                        ];
+                    default:
+                        return [
+                            { required: true, message: 'Поле не может быть пустым', trigger: 'blur' }
+                        ];
+                }
+            },
             submitForm(formName) {
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
@@ -185,7 +205,8 @@ window.onload = function() {
                 this.articleForm.elements.push({
                     type: 'paragraph',
                     key: Date.now(),
-                    value: ''
+                    value: '',
+                    label: 'Параграф'
                 });
             },
             addCode() {
@@ -193,17 +214,48 @@ window.onload = function() {
                     type: 'code',
                     key: Date.now(),
                     value: '',
-                    select: '',
+                    label: 'Код',
+                    fileName: '',
                 });
             },
-            handleLanguage(command, index) {
-
-                this.articleForm.elements[index].select = command;
+            addImage() {
+                this.articleForm.elements.push({
+                    type: 'image',
+                    key: Date.now(),
+                    label: 'Изображение',
+                    fileSrc: '',
+                });
             },
-            handleInput(value) {
-                // Ваш метод для обработки ввода
-                console.log(`Введено значение: ${value}`);
-                this.selectedText = value || 'Выберите или введите значение';
+            handleAvatarSuccess(res, file, index) {
+                this.articleForm.elements[index].fileSrc = URL.createObjectURL(file.raw);
+            },
+            beforeAvatarUpload(file) {
+                const isJPG = file.type === 'image/jpeg';
+                const isLt2M = file.size / 1024 / 1024 < 2;
+
+                if (!isJPG) {
+                    this.$message.error('Avatar picture must be JPG format!');
+                }
+                if (!isLt2M) {
+                    this.$message.error('Avatar picture size can not exceed 2MB!');
+                }
+                return isJPG && isLt2M;
+            },
+            triggerFileInput() {
+                this.$refs.fileInput.click();
+            },
+
+            // Метод, который срабатывает при выборе файла
+            handleFileChange(event) {
+                const file = event.target.files[0]; // Получаем выбранный файл
+                if (file) {
+                    this.addFile(file); // Передаем файл в метод addFile
+                }
+            },
+
+            // Метод, который обрабатывает прикрепление файла
+            addFile(file) {
+                this.articleForm.fileSrc = file;
             },
             getCategoryClass(category) {
                 switch (category) {
