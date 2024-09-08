@@ -12,92 +12,7 @@ window.onload = function() {
                 isAdmin: true,
                 searchQuery: '',
                 selectedCategory: '',
-                articles: [
-                    {
-                        title: 'Как использовать Element UI в ваших проектах',
-                        description: 'Подробное руководство по интеграции и использованию Element UI в веб-проектах.',
-                        category: 'Технологии',
-                        date: '2024-08-01'
-                    },
-                    {
-                        title: 'Преимущества минимализма в дизайне',
-                        description: 'Изучите основные принципы минимализма и узнайте, почему они важны в веб-дизайне.',
-                        category: 'Дизайн',
-                        date: '2024-07-15'
-                    },
-                    {
-                        title: 'Преимущества минимализма в дизайне',
-                        description: 'Изучите основные принципы минимализма и узнайте, почему они важны в веб-дизайне.',
-                        category: 'Дизайн',
-                        date: '2024-07-15'
-                    },
-                    {
-                        title: 'Преимущества минимализма в дизайне',
-                        description: 'Изучите основные принципы минимализма и узнайте, почему они важны в веб-дизайне.',
-                        category: 'Дизайн',
-                        date: '2024-07-15'
-                    },
-                    {
-                        title: 'Преимущества минимализма в дизайне',
-                        description: 'Изучите основные принципы минимализма и узнайте, почему они важны в веб-дизайне.',
-                        category: 'Дизайн',
-                        date: '2024-07-15'
-                    },
-                    {
-                        title: 'Преимущества минимализма в дизайне',
-                        description: 'Изучите основные принципы минимализма и узнайте, почему они важны в веб-дизайне.',
-                        category: 'Дизайн',
-                        date: '2024-07-15'
-                    },
-                    {
-                        title: 'Преимущества минимализма в дизайне',
-                        description: 'Изучите основные принципы минимализма и узнайте, почему они важны в веб-дизайне.',
-                        category: 'Дизайн',
-                        date: '2024-07-15'
-                    },
-                    {
-                        title: 'Преимущества минимализма в дизайне',
-                        description: 'Изучите основные принципы минимализма и узнайте, почему они важны в веб-дизайне.',
-                        category: 'Дизайн',
-                        date: '2024-07-15'
-                    },
-                    {
-                        title: 'Преимущества минимализма в дизайне',
-                        description: 'Изучите основные принципы минимализма и узнайте, почему они важны в веб-дизайне.',
-                        category: 'Дизайн',
-                        date: '2024-07-15'
-                    },
-                    {
-                        title: 'Преимущества минимализма в дизайне',
-                        description: 'Изучите основные принципы минимализма и узнайте, почему они важны в веб-дизайне.',
-                        category: 'Дизайн',
-                        date: '2024-07-15'
-                    },
-                    {
-                        title: 'Преимущества минимализма в дизайне',
-                        description: 'Изучите основные принципы минимализма и узнайте, почему они важны в веб-дизайне.',
-                        category: 'Дизайн',
-                        date: '2024-07-15'
-                    },
-                    {
-                        title: 'Преимущества минимализма в дизайне',
-                        description: 'Изучите основные принципы минимализма и узнайте, почему они важны в веб-дизайне.',
-                        category: 'Дизайн',
-                        date: '2024-07-15'
-                    },
-                    {
-                        title: 'Vue.js и его экосистема: что нового?',
-                        description: 'Последние новости и обновления в экосистеме Vue.js, включая новые релизы и пакеты.',
-                        category: 'Разработка',
-                        date: '2024-06-25'
-                    },
-                    {
-                        title: 'Vue2.js и его экосистема: что нового?',
-                        description: 'Последние новости и обновления в экосистеме Vue.js, включая новые релизы и пакеты.',
-                        category: 'Разработка',
-                        date: '2024-06-25'
-                    },
-                ],
+                articles: [],
                 isArticleVisible: false,
                 isAddVisible: false,
                 selectedArticle: null,
@@ -125,6 +40,9 @@ window.onload = function() {
 
             };
         },
+        created() {
+            this.fetchArticles(); // Вызываем метод при создании компонента
+        },
         computed: {
             uniqueCategories() {
                 // Создает массив уникальных категорий из статей
@@ -137,8 +55,24 @@ window.onload = function() {
                     return matchesSearchQuery && matchesCategory;
                 });
             },
+            hasFile() {
+                // Проверяем, есть ли выбранный файл
+                return this.articleForm.fileSrc !== '';
+            },
         },
         methods: {
+            async fetchArticles() {
+                try {
+                    const response = await fetch('/local/api/getArticles.php'); // Отправляем GET-запрос
+                    if (!response.ok) {
+                        throw new Error('Ошибка при получении данных'); // Обработка HTTP ошибок
+                    }
+                    const data = await response.json(); // Парсим ответ как JSON
+                    this.articles = data; // Подставляем полученные данные в селект
+                } catch (error) {
+                    console.error('Ошибка при получении категорий:', error);
+                }
+            },
             handleSearch() {
                 console.log('Поиск запроса:', this.searchQuery);
             },
@@ -244,7 +178,11 @@ window.onload = function() {
             triggerFileInput() {
                 this.$refs.fileInput.click();
             },
+            removeFileInput() {
+                this.$refs.fileInput.value = '';
+                this.articleForm.fileSrc = '';
 
+            },
             // Метод, который срабатывает при выборе файла
             handleFileChange(event) {
                 const file = event.target.files[0]; // Получаем выбранный файл
@@ -252,23 +190,9 @@ window.onload = function() {
                     this.addFile(file); // Передаем файл в метод addFile
                 }
             },
-
-            // Метод, который обрабатывает прикрепление файла
             addFile(file) {
                 this.articleForm.fileSrc = file;
             },
-            getCategoryClass(category) {
-                switch (category) {
-                    case 'Дизайн':
-                        return 'category-red';
-                    case 'Технологии':
-                        return 'category-blue';
-                    case 'Разработка':
-                        return 'category-green';
-                    default:
-                        return '';
-                }
-            }
         },
     })
 

@@ -38,7 +38,8 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                                 <el-col :span="6" v-for="(article, index) in filteredArticles" :key="index">
                                     <!-- Используем @click.native для прослушивания событий клика -->
                                     <el-card shadow="hover"
-                                             :class="['article-card', getCategoryClass(article.category)]"
+                                             :class="['article-card']"
+                                             :style="{ borderLeft: '3px solid ' + article.categoryColor }"
                                              @click.native="openArticleModal(article)">
                                         <h3 class="article-title">{{ article.title }}</h3>
                                         <p class="article-description">{{ article.description }}</p>
@@ -147,13 +148,13 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
 
                                 <template v-if="element.type === 'paragraph'">
 
-                                    <el-input v-model="element.value" type="textarea"></el-input>
+                                    <el-input v-model="element.value" autosize type="textarea"></el-input>
 
                                 </template>
 
                                 <template v-else-if="element.type === 'code'">
 
-                                    <el-input v-model="element.value" type="textarea"></el-input>
+                                    <el-input v-model="element.value" autosize type="textarea"></el-input>
 
                                     <el-popover
                                             placement="bottom"
@@ -205,7 +206,13 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                                 <el-button icon="el-icon-plus" @click="addImage">Изображение</el-button>
 
                                 <el-button icon="el-icon-folder-add" @click="triggerFileInput"></el-button>
-                                <el-button v-if="articleForm.fileSrc" icon="el-icon-folder-remove" @click="removeFileInput"></el-button>
+
+                                <el-tooltip v-if="articleForm.fileSrc" class="item" effect="dark" :content="articleForm.fileSrc.name" placement="top-start">
+                                    <el-button icon="el-icon-folder-remove"
+                                               @click="removeFileInput"></el-button>
+                                </el-tooltip>
+
+
 
                                 <el-button type="success" @click="submitForm('articleForm')">Сохранить</el-button>
 
