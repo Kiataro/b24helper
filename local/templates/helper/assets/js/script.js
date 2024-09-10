@@ -13,9 +13,19 @@ window.onload = function() {
                 searchQuery: '',
                 selectedCategory: '',
                 articles: [],
+                categories: [],
+                observer: null,
                 isArticleVisible: false,
                 isAddVisible: false,
-                selectedArticle: null,
+                selectedArticle: {
+                    categoryLabel: '',
+                    content: '',
+                    date: '',
+                    description: '',
+                    file: '',
+                    id: '',
+                    title: '',
+                },
                 telegramLink: 'https://t.me/Zammensiny',
                 username: '@Zammensiny',
                 articleForm: {
@@ -48,24 +58,79 @@ window.onload = function() {
 
             this.fetchArticles();
 
+            /*-- Получаем категории --*/
+
+            this.fetchCategories();
+
         },
+
         computed: {
 
-            /*-- Получить уникальные категории статей --*/
+            /*-- Форматирование JSON (доработать)--*/
 
-            uniqueCategories() {
-                return [...new Set(this.articles.map(article => article.category))];
+            formattedContentHtml() {
+                if (this.selectedArticle && this.selectedArticle.content) {
+                    try {
+                        const jsonContent = JSON.parse(this.selectedArticle.content);
+                        const formattedJson = JSON.stringify(jsonContent, null, 2);
+                        return `<code class="language-json">${Prism.highlight(formattedJson, Prism.languages.json, 'json')}</code>`;
+                    } catch (e) {
+                        return `<code class="language-json">${this.selectedArticle.content}</code>`;
+                    }
+                }
+                return '';
             },
+
+            /*-- Фильтр по статьям --*/
 
             filteredArticles() {
                 return this.articles.filter(article => {
-                    const matchesSearchQuery = article.title.toLowerCase().includes(this.searchQuery.toLowerCase());
-                    const matchesCategory = !this.selectedCategory || article.category === this.selectedCategory;
+                    const query = this.searchQuery.toLowerCase();
+                    const titleMatches = article.title.toLowerCase().includes(query);
+                    const descriptionMatches = article.description.toLowerCase().includes(query);
+                    const matchesSearchQuery = titleMatches || descriptionMatches;
+
+                    const matchesCategory = !this.selectedCategory || article.categoryId === this.selectedCategory;
                     return matchesSearchQuery && matchesCategory;
                 });
             }
         },
+
+        mounted() {
+
+            /*-- Prism костыль (доработать) --*/
+
+            Prism.highlightAll()
+
+        },
+        updated() {
+
+            /*-- Prism костыль (доработать) --*/
+
+            this.$nextTick(() => {
+                const codeElement = this.$el.querySelector('pre code');
+                if (codeElement && typeof Prism !== 'undefined') {
+                    Prism.highlightElement(codeElement);
+                }
+            });
+
+        },
         methods: {
+
+            /*-- Скачать файл --*/
+
+            downloadFile() {
+
+                if (this.selectedArticle && this.selectedArticle.file) {
+                    const link = document.createElement('a');
+                    link.href = this.selectedArticle.file;
+                    link.download = '';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+
+            },
 
             /*-- Получить статьи --*/
 
@@ -75,6 +140,23 @@ window.onload = function() {
 
                     const data = await response.json();
                     this.articles = data;
+
+
+                } catch (error) {
+
+                    this.$message.error('Произошла ошибка при получении данных', error);
+
+                }
+            },
+
+            /*-- Получить категории --*/
+
+            async fetchCategories() {
+                try {
+                    const response = await fetch('/local/api/getCategories.php');
+
+                    const data = await response.json();
+                    this.categories = data;
 
                 } catch (error) {
 
@@ -86,8 +168,37 @@ window.onload = function() {
             /*-- Детальная модалка статьи --*/
 
             openArticleModal(article) {
-                this.selectedArticle = article;
-                this.isArticleVisible = true;
+
+                const id = article.id;
+
+                fetch('/local/api/getArticle.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: id
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+
+                        this.selectedArticle = data;
+
+                        this.isArticleVisible = true;
+
+                    })
+                    .catch(error => {
+
+                        this.$message.error('Произошла ошибка при открытии статьи ', error);
+
+                    });
+
+
+
+
+
+
             },
 
             /*-- Модалка добавления статьи --*/
@@ -134,7 +245,7 @@ window.onload = function() {
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
 
-                        this.$message.success('Статья успешно добавлена');
+                        this.addArticle(formName);
 
                     } else {
 
@@ -348,7 +459,50 @@ window.onload = function() {
                     });
 
             },
+
+            /*-- Сброс формы добавления статьи --*/
+
+            resetForm(formName) {
+
+                this.$refs[formName].resetFields();
+
+                this.articleForm.elements = [];
+            },
+
+            /*-- Обработчик добавления статьи --*/
+
+            addArticle(formName) {
+
+                const formData = this.articleForm;
+
+                fetch('/local/api/addArticle.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        data: formData
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+
+                        this.fetchArticles();
+
+                        this.resetForm(formName);
+
+                        this.isAddVisible = false;
+
+                        this.$message.success('Статья успешно добавлена');
+
+                    })
+                    .catch(error => {
+
+                        this.$message.error('Произошла ошибка при добавлении статьи ', error);
+
+                    });
+
+            }
         },
     })
-
 }

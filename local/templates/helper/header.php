@@ -22,6 +22,11 @@
     <meta name="format-detection" content="telephone=no"/>
     <meta name="format-detection" content="address=no"/>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
     <title><?php $APPLICATION->ShowTitle() ?></title>
     <?php $APPLICATION->ShowHead(); ?>
 

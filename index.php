@@ -12,10 +12,10 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
 
                         <el-select v-model="selectedCategory" clearable placeholder="Категория" class="category-filter">
                             <el-option
-                                    v-for="category in uniqueCategories"
-                                    :key="category"
-                                    :label="category"
-                                    :value="category"
+                                    v-for="category in categories"
+                                    :key="category.id"
+                                    :label="category.label"
+                                    :value="category.id"
                             ></el-option>
                         </el-select>
 
@@ -51,7 +51,7 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                                         <h3 class="article-title">{{ article.title }}</h3>
                                         <p class="article-description">{{ article.description }}</p>
                                         <div class="article-meta">
-                                            <span class="article-category">{{ article.category }}</span>
+                                            <span class="article-category">{{ article.categoryLabel }}</span>
                                             <span class="article-date">{{ article.date }}</span>
                                         </div>
                                     </el-card>
@@ -68,12 +68,25 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                             <h2>{{ selectedArticle.title }}</h2>
                             <p>{{ selectedArticle.description }}</p>
                             <div class="article-modal-meta">
-                                <span>Категория: {{ selectedArticle.category }}</span>
+                                <span>Категория: {{ selectedArticle.categoryLabel }}</span>
                                 <span>Дата: {{ selectedArticle.date }}</span>
                             </div>
+
+                            <div class="article-modal-content">
+
+                                <pre v-html="formattedContentHtml"></pre>
+
+                            </div>
+
                         </div>
 
-                        <span slot="footer" class="dialog-footer"></span>
+                        <span slot="footer" class="dialog-footer">
+
+                             <el-button v-if="selectedArticle.file" type="primary" @click="downloadFile">Скачать пример
+                                 <i class="el-icon-upload el-icon-right"></i>
+                             </el-button>
+
+                        </span>
 
                     </el-dialog>
 
@@ -118,10 +131,10 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
 
                                 <el-select v-model="articleForm.category" clearable placeholder="" class="add-filter">
                                     <el-option
-                                            v-for="category in uniqueCategories"
-                                            :key="category"
-                                            :label="category"
-                                            :value="category"
+                                            v-for="category in categories"
+                                            :key="category.id"
+                                            :label="category.label"
+                                            :value="category.id"
                                     ></el-option>
                                 </el-select>
 
@@ -242,6 +255,14 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                     <span class="username">{{ username }}</span>
                 </a>
             </footer>
+
+            <!--  Prism костыль (доработать) -->
+
+            <pre style="display: none">
+                <code class="language-json">
+
+                </code>
+            </pre>
 
         </template>
     </div>
