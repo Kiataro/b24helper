@@ -24,6 +24,8 @@ window.onload = function() {
                     subtitle: '',
                     category: '',
                     fileSrc: '',
+                    fileId: '',
+                    fileName: '',
                 },
                 imageUrl: '',
                 rules: {
@@ -41,100 +43,146 @@ window.onload = function() {
             };
         },
         created() {
-            this.fetchArticles(); // Вызываем метод при создании компонента
+
+            /*-- Получаем статьи при загрузке --*/
+
+            this.fetchArticles();
+
         },
         computed: {
+
+            /*-- Получить уникальные категории статей --*/
+
             uniqueCategories() {
-                // Создает массив уникальных категорий из статей
                 return [...new Set(this.articles.map(article => article.category))];
             },
+
             filteredArticles() {
                 return this.articles.filter(article => {
                     const matchesSearchQuery = article.title.toLowerCase().includes(this.searchQuery.toLowerCase());
                     const matchesCategory = !this.selectedCategory || article.category === this.selectedCategory;
                     return matchesSearchQuery && matchesCategory;
                 });
-            },
-            hasFile() {
-                // Проверяем, есть ли выбранный файл
-                return this.articleForm.fileSrc !== '';
-            },
+            }
         },
         methods: {
+
+            /*-- Получить статьи --*/
+
             async fetchArticles() {
                 try {
-                    const response = await fetch('/local/api/getArticles.php'); // Отправляем GET-запрос
-                    if (!response.ok) {
-                        throw new Error('Ошибка при получении данных'); // Обработка HTTP ошибок
-                    }
-                    const data = await response.json(); // Парсим ответ как JSON
-                    this.articles = data; // Подставляем полученные данные в селект
+                    const response = await fetch('/local/api/getArticles.php');
+
+                    const data = await response.json();
+                    this.articles = data;
+
                 } catch (error) {
-                    console.error('Ошибка при получении категорий:', error);
+
+                    this.$message.error('Произошла ошибка при получении данных', error);
+
                 }
             },
-            handleSearch() {
-                console.log('Поиск запроса:', this.searchQuery);
-            },
+
+            /*-- Детальная модалка статьи --*/
+
             openArticleModal(article) {
                 this.selectedArticle = article;
                 this.isArticleVisible = true;
             },
+
+            /*-- Модалка добавления статьи --*/
+
             openAddModal() {
                 this.isAddVisible = true;
             },
-            closeModal() {
-                this.isArticleVisible = false;
-                this.selectedArticle = null;
-            },
+
+            /*-- Валидация для формы --*/
+
             getRules(type) {
+
                 switch (type) {
+
                     case 'paragraph':
+
                         return [
                             { required: true, message: 'Параграф не может быть пустым', trigger: 'blur' }
                         ];
+
                     case 'code':
+
                         return [
                             { required: true, message: 'Код не может быть пустым', trigger: 'blur' }
                         ];
+
                     case 'image':
+
                         return [
                             { required: false }
                         ];
+
                     default:
                         return [
                             { required: true, message: 'Поле не может быть пустым', trigger: 'blur' }
                         ];
+
                 }
             },
+
+            /*-- Добавление статьи --*/
+
             submitForm(formName) {
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        alert('submit!');
 
-                        console.log(this.articleForm)
+                        this.$message.success('Статья успешно добавлена');
 
                     } else {
-                        console.log('error submit!!');
+
+                        this.$message.error('Произошла ошибка при сохранении');
                         return false;
                     }
                 });
             },
-            removeParagraph(item) {
-                var index = this.articleForm.paragraphs.indexOf(item);
-                if (index !== -1) {
-                    this.articleForm.paragraphs.splice(index, 1);
-                }
-            },
-            removeCode(item) {
-                var index = this.articleForm.codes.indexOf(item);
-                if (index !== -1) {
-                    this.articleForm.codes.splice(index, 1);
-                }
-            },
+
+            /*-- Удалить элемент из формы --*/
+
             removeElement(index) {
-                this.articleForm.elements.splice(index, 1);
+
+                /*-- Если тип инпута "Изображение" --*/
+
+                if (this.articleForm.elements[index].type === 'image') {
+                    const fileId = this.articleForm.elements[index].fileId;
+
+                    fetch('/local/api/removeFile.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ fileId: fileId })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+
+                                this.articleForm.elements.splice(index, 1);
+
+                            }
+                        })
+                        .catch(error => {
+
+                            this.$message.error('Произошла ошибка при запросе на удаление файла ', error);
+
+                        });
+
+                } else {
+
+                    this.articleForm.elements.splice(index, 1);
+                }
+
             },
+
+            /*-- Добавить параграф --*/
+
             addParagraph() {
                 this.articleForm.elements.push({
                     type: 'paragraph',
@@ -143,6 +191,9 @@ window.onload = function() {
                     label: 'Параграф'
                 });
             },
+
+            /*-- Добавить код --*/
+
             addCode() {
                 this.articleForm.elements.push({
                     type: 'code',
@@ -152,46 +203,150 @@ window.onload = function() {
                     fileName: '',
                 });
             },
+
+            /*-- Добавить изображение --*/
+
             addImage() {
                 this.articleForm.elements.push({
                     type: 'image',
                     key: Date.now(),
                     label: 'Изображение',
                     fileSrc: '',
+                    fileId: '',
                 });
             },
+
+            /*-- Обработчик после загрузки изображения --*/
+
             handleAvatarSuccess(res, file, index) {
-                this.articleForm.elements[index].fileSrc = URL.createObjectURL(file.raw);
+
+                if (res.status === 'success') {
+
+                    this.articleForm.elements[index].fileSrc = res.fileSrc;
+                    this.articleForm.elements[index].fileId = res.fileId;
+
+                } else {
+
+                    this.$message.error('Ошибка загрузки изображения');
+                }
+
             },
+
+            /*-- Обработчик перед загрузкой изображения --*/
+
             beforeAvatarUpload(file) {
-                const isJPG = file.type === 'image/jpeg';
+
+                const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
                 const isLt2M = file.size / 1024 / 1024 < 2;
 
-                if (!isJPG) {
-                    this.$message.error('Avatar picture must be JPG format!');
+                if (!isJpgOrPng) {
+                    this.$message.error('Можно загружать только файлы форматов JPG или PNG');
+                    return false;
                 }
+
                 if (!isLt2M) {
-                    this.$message.error('Avatar picture size can not exceed 2MB!');
+                    this.$message.error('Размер изображения не должен превышать 2MB');
+                    return false;
                 }
-                return isJPG && isLt2M;
+
+                return true;
+
             },
+
+            /*-- Обработчик на закрепление файла к статье --*/
+
             triggerFileInput() {
                 this.$refs.fileInput.click();
             },
+
+            /*-- Обработчик на удаление закрепленного файла к статье --*/
+
             removeFileInput() {
-                this.$refs.fileInput.value = '';
-                this.articleForm.fileSrc = '';
+
+                const fileId = this.articleForm.fileId;
+
+                fetch('/local/api/removeFile.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ fileId: fileId })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+
+                        if (data.status === 'success') {
+
+                            this.$message.success('Файл успешно удален');
+
+                            this.$refs.fileInput.value = '';
+                            this.articleForm.fileSrc = '';
+                            this.articleForm.fileId = '';
+                            this.articleForm.fileName = '';
+
+                        } else {
+
+                            this.$message.error('Ошибка при удалении файла');
+
+                        }
+                    })
+                    .catch(error => {
+
+                        this.$message.error('Произошла ошибка при запросе на удаление файла: ', error);
+
+                    });
 
             },
-            // Метод, который срабатывает при выборе файла
+
+            /*-- Обработчик при выборе файла закрепленного к статье --*/
+
             handleFileChange(event) {
-                const file = event.target.files[0]; // Получаем выбранный файл
+                const file = event.target.files[0];
                 if (file) {
-                    this.addFile(file); // Передаем файл в метод addFile
+                    this.addFile(file);
                 }
             },
+
+            /*-- Обработчик добавления файла --*/
+
             addFile(file) {
-                this.articleForm.fileSrc = file;
+
+                const allowedExtensions = /\.(rar|7z|zip)$/i;
+                const isValidFile = allowedExtensions.test(file.name);
+
+                if (!isValidFile) {
+                    this.$message.error('Можно загружать только файлы формата .rar .7z или .zip');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/local/api/loadFile.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+
+                            this.articleForm.fileSrc = data.fileSrc;
+                            this.articleForm.fileId = data.fileId;
+                            this.articleForm.fileName = file.name;
+
+                            this.$message.success('Файл успешно загружен');
+
+                        } else {
+
+                            this.$message.error('Ошибка загрузки файла: ' + data.message);
+
+                        }
+                    })
+                    .catch(error => {
+
+                        this.$message.error('Ошибка при отправке файла');
+                    });
+
             },
         },
     })

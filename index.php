@@ -6,8 +6,10 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
         <template>
             <div class="hero-section">
                 <el-container>
-                    <!-- Строка поиска в верхней части -->
                     <el-header>
+
+                        <!-- Категории -->
+
                         <el-select v-model="selectedCategory" clearable placeholder="Категория" class="category-filter">
                             <el-option
                                     v-for="category in uniqueCategories"
@@ -16,27 +18,32 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                                     :value="category"
                             ></el-option>
                         </el-select>
+
+                        <!-- Строка поиска -->
+
                         <el-input
                                 placeholder="Введите запрос для поиска..."
                                 v-model="searchQuery"
                                 size="large"
                                 class="search-input"
                                 clearable
-                                @keyup.enter="handleSearch"
                         >
-                            <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+                            <el-button slot="append" icon="el-icon-search"></el-button>
+
                         </el-input>
+
+                        <!-- Добавление статьи -->
 
                         <el-button v-if="isAdmin" icon="el-icon-plus" @click="openAddModal"></el-button>
 
                     </el-header>
 
                     <!-- Основной контент с карточками статей -->
+
                     <el-main>
                         <div class="article-cards">
                             <el-row :gutter="20">
                                 <el-col :span="6" v-for="(article, index) in filteredArticles" :key="index">
-                                    <!-- Используем @click.native для прослушивания событий клика -->
                                     <el-card shadow="hover"
                                              :class="['article-card']"
                                              :style="{ borderLeft: '3px solid ' + article.categoryColor }"
@@ -54,12 +61,9 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                     </el-main>
 
                     <!-- Модальное окно для отображения деталей статьи -->
-                    <el-dialog
-                            title="Детали статьи"
-                            :visible.sync="isArticleVisible"
-                            width="50%"
-                            @close="closeModal"
-                    >
+
+                    <el-dialog :visible.sync="isArticleVisible" width="50%">
+
                         <div v-if="selectedArticle">
                             <h2>{{ selectedArticle.title }}</h2>
                             <p>{{ selectedArticle.description }}</p>
@@ -68,9 +72,9 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                                 <span>Дата: {{ selectedArticle.date }}</span>
                             </div>
                         </div>
-                        <span slot="footer" class="dialog-footer">
-          <el-button @click="closeModal">Закрыть</el-button>
-        </span>
+
+                        <span slot="footer" class="dialog-footer"></span>
+
                     </el-dialog>
 
                     <!-- Модальное окно для добавления статьи -->
@@ -84,33 +88,33 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                                 :rules="rules"
                                 :model="articleForm"
                                 ref="articleForm"
-                                label-width="120px"
-                                >
+                                label-width="120px">
+
                             <!-- Заголовок -->
 
                             <el-form-item
                                     prop="title"
-                                    label="Заголовок"
+                                    label="Заголовок">
 
-                            >
                                 <el-input v-model="articleForm.title" clearable></el-input>
+
                             </el-form-item>
 
                             <!-- Подзаголовок -->
 
                             <el-form-item
                                     prop="subtitle"
-                                    label="Подзаголовок"
-                            >
+                                    label="Подзаголовок">
+
                                 <el-input v-model="articleForm.subtitle" clearable></el-input>
+
                             </el-form-item>
 
                             <!-- Категория -->
 
                             <el-form-item
                                     prop="category"
-                                    label="Категория"
-                            >
+                                    label="Категория">
 
                                 <el-select v-model="articleForm.category" clearable placeholder="" class="add-filter">
                                     <el-option
@@ -129,10 +133,7 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                                     v-for="(element, index) in articleForm.elements"
                                     :key="element.key"
                                     :prop="'elements.' + index + '.value'"
-                                    :rules="getRules(element.type)"
-                            >
-
-                                <!-- Кастом лабель -->
+                                    :rules="getRules(element.type)">
 
                                 <template #label>
                                     <div class="custom_label">
@@ -143,14 +144,17 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                                             <span class="bold" v-if="element.fileName">{{ element.fileName }}</span>
                                         </div>
                                     </div>
-
                                 </template>
+
+                                <!-- Если параграф -->
 
                                 <template v-if="element.type === 'paragraph'">
 
                                     <el-input v-model="element.value" autosize type="textarea"></el-input>
 
                                 </template>
+
+                                <!-- Если код -->
 
                                 <template v-else-if="element.type === 'code'">
 
@@ -160,24 +164,28 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                                             placement="bottom"
                                             width="200"
                                             trigger="click"
-                                            class="delete-button "
+                                            class="delete-button">
 
-                                    >
                                         <el-input
                                                 v-model="element.fileName"
-                                                placeholder="Имя файла"
-                                        ></el-input>
+                                                placeholder="Имя файла">
+                                        </el-input>
+
                                         <el-button slot="reference" class="utility">
                                             <i class="el-icon-document"></i>
                                         </el-button>
+
                                     </el-popover>
+
                                 </template>
+
+                                <!-- Если изображение -->
 
                                 <template v-else-if="element.type === 'image'">
 
                                     <el-upload
                                             class="avatar-uploader"
-                                            action="/"
+                                            action="/local/api/loadFile.php"
                                             :show-file-list="false"
                                             :on-success="(res, file) => handleAvatarSuccess(res, file, index)"
                                             :before-upload="beforeAvatarUpload">
@@ -192,8 +200,8 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                                 <el-button
                                         icon="el-icon-delete"
                                         @click.prevent="removeElement(index)"
-                                        class="delete-button utility"
-                                ></el-button>
+                                        class="delete-button utility">
+                                </el-button>
 
                             </el-form-item>
 
@@ -202,26 +210,20 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
                             <div class="nav">
 
                                 <el-button icon="el-icon-plus" @click="addParagraph">Параграф</el-button>
+
                                 <el-button icon="el-icon-plus" @click="addCode">Код</el-button>
+
                                 <el-button icon="el-icon-plus" @click="addImage">Изображение</el-button>
 
                                 <el-button icon="el-icon-folder-add" @click="triggerFileInput"></el-button>
 
-                                <el-tooltip v-if="articleForm.fileSrc" class="item" effect="dark" :content="articleForm.fileSrc.name" placement="top-start">
-                                    <el-button icon="el-icon-folder-remove"
-                                               @click="removeFileInput"></el-button>
+                                <el-tooltip v-if="articleForm.fileSrc" class="item" effect="dark" :content="articleForm.fileName" placement="top-start">
+                                    <el-button icon="el-icon-folder-remove" @click="removeFileInput"></el-button>
                                 </el-tooltip>
-
-
 
                                 <el-button type="success" @click="submitForm('articleForm')">Сохранить</el-button>
 
-                                <input
-                                        type="file"
-                                        ref="fileInput"
-                                        style="display: none"
-                                        @change="handleFileChange"
-                                />
+                                <input type="file" ref="fileInput" style="display: none" @change="handleFileChange"/>
 
                             </div>
 
@@ -231,6 +233,8 @@ $APPLICATION->SetPageProperty("TITLE", "Заметки web-разработчи�
 
                 </el-container>
             </div>
+
+            <!-- Подвал -->
 
             <footer class="footer">
                 <a :href="telegramLink" target="_blank" rel="noopener noreferrer" class="telegram-link">

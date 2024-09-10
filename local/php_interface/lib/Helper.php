@@ -2,6 +2,7 @@
 namespace App;
 
 use Bitrix\Main;
+use Bitrix\Main\Loader;
 use Bitrix\Iblock\IblockTable;
 
 \Bitrix\Main\Loader::includeModule('iblock');
@@ -9,21 +10,49 @@ use Bitrix\Iblock\IblockTable;
 class Helper
 {
 
-    /*-- get Iblock --*/
+    /*-- remove File --*/
 
-    public static function getIblockIdByCode($code) {
+    public static function removeFile($fileId) {
 
-        $dbIblock = IblockTable::getList([
-            'filter' => ['CODE' => $code],
-            'select' => ['ID']
-        ]);
+        \CFile::Delete($fileId);
 
-        if ($arIblock = $dbIblock->fetch()) {
-            return $arIblock['ID'];
+        $response = [
+            'status' => 'success',
+            'message' => 'Файл успешно удален',
+        ];
+
+        return $response;
+
+    }
+
+    /*-- load File --*/
+
+    public static function loadFile($file) {
+
+        $arFile = $file['file'];
+        $arFile['MODULE_ID'] = 'main';
+
+        $fileId = \CFile::SaveFile($arFile, "upload");
+
+        if ($fileId) {
+            $filePath = \CFile::GetPath($fileId);
+
+            $response = [
+                'status' => 'success',
+                'fileSrc' => $filePath,
+                'fileId' => $fileId
+            ];
+
+        } else {
+
+            $response = [
+                'status' => 'error',
+                'message' => 'Ошибка сохранения файла'
+            ];
+
         }
 
-        return null;
-
+        return $response;
     }
 
     /*-- get Category --*/
