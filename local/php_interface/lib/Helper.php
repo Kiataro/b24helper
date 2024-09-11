@@ -128,7 +128,7 @@ class Helper
 
             $response = [
                 'status' => 'success',
-                'fileSrc' => $filePath,
+                'fileSrc' => 'https://'.$_SERVER['HTTP_HOST'].$filePath,
                 'fileId' => $fileId
             ];
 

@@ -1,11 +1,8 @@
 <?php if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
 
-\Bitrix\Main\Page\Asset::getInstance()->addCss(SITE_TEMPLATE_PATH. '/assets/css/style.css');
-
-\Bitrix\Main\Page\Asset::getInstance()->addJs(SITE_TEMPLATE_PATH. '/assets/js/libs/vue/index.js');
-\Bitrix\Main\Page\Asset::getInstance()->addJs(SITE_TEMPLATE_PATH. '/assets/js/libs/element-ui/index.js');
-
-\Bitrix\Main\Page\Asset::getInstance()->addJs(SITE_TEMPLATE_PATH. '/assets/js/script.js');
+\Bitrix\Main\Page\Asset::getInstance()->addJs(SITE_TEMPLATE_PATH. '/assets/js/manifest.js');
+\Bitrix\Main\Page\Asset::getInstance()->addJs(SITE_TEMPLATE_PATH. '/assets/js/vendor.js');
+\Bitrix\Main\Page\Asset::getInstance()->addJs(SITE_TEMPLATE_PATH. '/assets/js/index.js');
 
 ?>
 
@@ -21,11 +18,6 @@
     />
     <meta name="format-detection" content="telephone=no"/>
     <meta name="format-detection" content="address=no"/>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 
     <title><?php $APPLICATION->ShowTitle() ?></title>
     <?php $APPLICATION->ShowHead(); ?>

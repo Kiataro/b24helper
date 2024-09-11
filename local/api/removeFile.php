@@ -10,6 +10,10 @@ $helper = new App\Helper;
 
 $phpInput = json_decode(file_get_contents('php://input'), true);
 
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
 $fileData = $helper->removeFile($phpInput['fileId']);
 
 echo json_encode($fileData);
