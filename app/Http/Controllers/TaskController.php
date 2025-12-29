@@ -99,7 +99,8 @@ class TaskController extends Controller
                 ->orWhere('subtitle', 'like', '%' . $query . '%');
         }
 
-        $tasks = $tasksQuery->latest()->take(20)->get();
+        $tasks = $tasksQuery->latest()->take(30)->get();
+
 
         return response()->json($tasks);
     }
