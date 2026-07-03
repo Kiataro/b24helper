@@ -90,19 +90,35 @@ class TaskController extends Controller
 
     public function getTasks(Request $request)
     {
-        $query = $request->input('query');
+        $perPage = (int) $request->query('per_page', 20);
+        $perPage = max(1, min($perPage, 60));
 
-        $tasksQuery = Task::query()->with('categories');
+        $search = trim((string) $request->query('query', ''));
+        $taskSecret = config('app.task_secret', env('TASK_SECRET'));
 
-        if ($query) {
-            $tasksQuery->where('title', 'like', '%' . $query . '%')
-                ->orWhere('subtitle', 'like', '%' . $query . '%');
+        $tasks = Task::query()
+            ->with('categories')
+            ->latest();
+
+        if (!$taskSecret || $request->query('secret') !== $taskSecret) {
+            $tasks->where('hidden', false);
         }
 
-        $tasks = $tasksQuery->latest()->take(30)->get();
+        if ($search !== '') {
+            $tasks->where(function ($query) use ($search) {
+                $query
+                    ->where('title', 'like', "%{$search}%")
+                    ->orWhere('subtitle', 'like', "%{$search}%")
+                    ->orWhere('content', 'like', "%{$search}%")
+                    ->orWhereHas('categories', function ($categoryQuery) use ($search) {
+                        $categoryQuery->where('value', 'like', "%{$search}%");
+                    });
+            });
+        }
 
-
-        return response()->json($tasks);
+        return $tasks
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     public function destroy(Task $task)
