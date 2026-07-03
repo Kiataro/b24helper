@@ -19,7 +19,7 @@ const app = createApp({
             pagination: {
                 current_page: 1,
                 last_page: 1,
-                per_page: 20,
+                per_page: 21,
                 total: 0,
                 from: 0,
                 to: 0,
@@ -43,7 +43,7 @@ const app = createApp({
 
             const params = new URLSearchParams();
             params.set('page', String(page));
-            params.set('per_page', '20');
+            params.set('per_page', '21');
 
             if (query) {
                 params.set('query', query);
@@ -86,7 +86,7 @@ const app = createApp({
                 this.pagination = {
                     current_page: Number(payload.current_page || 1),
                     last_page: Number(payload.last_page || 1),
-                    per_page: Number(payload.per_page || 20),
+                    per_page: Number(payload.per_page || 21),
                     total: Number(payload.total || 0),
                     from: Number(payload.from || 0),
                     to: Number(payload.to || 0),

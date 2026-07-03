@@ -132,7 +132,7 @@ export default {
             default: () => ({
                 current_page: 1,
                 last_page: 1,
-                per_page: 20,
+                per_page: 21,
                 total: 0,
                 from: 0,
                 to: 0,

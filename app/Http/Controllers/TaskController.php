@@ -90,7 +90,7 @@ class TaskController extends Controller
 
     public function getTasks(Request $request)
     {
-        $perPage = (int) $request->query('per_page', 20);
+        $perPage = (int) $request->query('per_page', 21);
         $perPage = max(1, min($perPage, 60));
 
         $search = trim((string) $request->query('query', ''));
